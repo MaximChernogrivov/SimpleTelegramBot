@@ -4,21 +4,41 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.chernogrivov.SimpleTelegramBot.config.BotConfig;
 
+import java.util.ArrayList;
 import java.util.List;
+
 @Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
 
     BotConfig botConfig;
 
+    static final String HELP_TEXT= "Этот бот создан для демонстрации \n"+
+            "Вы можете выполнять команды из главного меню бота (слева, внизу)";
+
     @Autowired
     public TelegramBot(BotConfig botConfig) {
         this.botConfig = botConfig;
+        List<BotCommand> listOfCommands= new ArrayList<>();
+        listOfCommands.add(new BotCommand("/start", "get a welcome message"));
+        listOfCommands.add(new BotCommand("/mydata", "get your data"));
+        listOfCommands.add(new BotCommand("/deletedata","delete your data"));
+        listOfCommands.add(new BotCommand("/help", "get bot info"));
+        listOfCommands.add(new BotCommand("/settings", "set your preferences"));
+        try {
+            this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null));
+        }
+        catch (TelegramApiException e){
+            log.error("Error of bot commands "+ e.getMessage());
+        }
     }
     @Override
     public String getBotUsername(){
@@ -39,6 +59,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/start":
                     startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
                     break;
+                case "/help":
+                    sendMessage(chatId, HELP_TEXT);
+                    break;
                 default: sendMessage(chatId,"Пока команда не поддерживается");
             }
         }
@@ -51,7 +74,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void startCommandReceived(long chatId, String name) {
-        String answer = "Hello " + name + ", how are you?";
+        String answer = "Здравствуйте " + name;
         log.info("Send message to user"+ name);
         sendMessage(chatId, answer);
     }

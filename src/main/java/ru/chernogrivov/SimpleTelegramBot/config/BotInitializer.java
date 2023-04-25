@@ -13,6 +13,7 @@ import ru.chernogrivov.SimpleTelegramBot.config.service.TelegramBot;
 @Slf4j
 @Component
 public class BotInitializer {
+
     @Autowired
     TelegramBot bot;
 
